@@ -1,0 +1,80 @@
+server:
+  port: 8080
+  #  ssl:
+  #    key-store: classpath:xiaowu.fun.pfx
+  #    key-store-type: PKCS12
+  #    key-store-password: oftcgwzj
+  tomcat:
+    uri-encoding: UTF-8
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+      enabled: true
+
+spring:
+  mail:
+    host: smtp-mail.outlook.com #这个是QQ邮箱的，发件人邮箱的 SMTP 服务器地址, 必须准确, 不同邮件服务器地址不同, 一般(只是一般, 绝非绝对)格式为: smtp.xxx.com，可以百度 （现在不是了）
+    port: 587
+    username: voecnu@outlook.com #qq邮箱 （现在不是了）
+    password: Qb(iE#w1xqPE@Zlt~^3 fQ10HhSD4yPrXjHNg @RTdPvAEfN+YcjCPa%l @IuEFw7l@17*Nmp&nb 4pZyR&4t+*qcq$d! #qq邮箱授权码 （现在不是了）
+    protocol: smtp #发送邮件协议
+    properties.mail.smtp.auth: true   #设置是否需要认证，如果为true,那么用户名和密码就必须的，
+    properties.mail.smtp.starttls.enable: true
+    properties.mail.smtp.starttls.required: true
+    properties.mail.smtp.ssl.enable: false #开启SSL （现在不开了）
+    default-encoding: utf-8
+  http:
+    encoding:
+      charset: UTF-8
+      force: true
+      enabled: true
+  datasource:
+    url: jdbc:mysql://localhost:3306/citywalker?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: a13738780767
+  jackson:
+    time-zone: GMT+8
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  redis:
+    database: 0
+    host: localhost
+    port: 6379
+    timeout: 1000
+
+mybatis-plus:
+  global-config:
+    db-config:
+      #字段策略，默认非NULL判断
+      field-strategy: not_null
+  configuration:
+    map-underscore-to-camel-case: true
+
+
+logback:
+  dir: logs
+  #文件名称
+  filename:
+    all: springboot-base-frame-all
+    info: springboot-base-frame-info
+    warn: springboot-base-frame-warn
+    error: springboot-base-frame-error
+  #文件的最大数量
+  maxhistory: 10
+  #文件的最大文件大小
+  maxfilesize: 100MB
+  #日志级别
+  level: debug
+  #日志字符编码
+  charset: UTF-8
+  #日志格式
+  CONSOLE_LOG_PATTERN: '%d{yyyy-MM-dd HH:mm:ss.SSS} %boldYellow([%thread]) %highlight(%-5level) %boldGreen(%logger{50}) - %msg%n'
+  FILE_LOG_PATTERN: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n'
+
+uniapp:
+  appid: wxa70d503b20ed975b
+  appsecret: fad288a10751b57c04d064a0f2e1edac
