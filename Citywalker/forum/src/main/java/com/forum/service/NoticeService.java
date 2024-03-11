@@ -30,4 +30,6 @@ public interface NoticeService {
     List<NoticeInfo> getLikeAndReplyNotices(Integer page, Integer pageSize);
 
     NoticeInfo getNoticeById(Long id);
+
+    String getName(int type);
 }

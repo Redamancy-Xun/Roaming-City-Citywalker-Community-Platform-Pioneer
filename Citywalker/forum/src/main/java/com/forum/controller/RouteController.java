@@ -1,8 +1,11 @@
 package com.forum.controller;
 
 import com.forum.annotation.Auth;
+import com.forum.annotation.Checked;
 import com.forum.common.Page;
 import com.forum.common.Result;
+import com.forum.controller.request.CreatePostParams;
+import com.forum.controller.request.CreateRouteRequest;
 import com.forum.controller.response.ShowRouteResponse;
 import com.forum.entity.Route;
 import com.forum.exception.MyException;
@@ -14,10 +17,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
@@ -70,6 +70,17 @@ public class RouteController {
     public Result getRouteById(@NotNull @RequestParam("routeId") Long routeId) {
         try {
             return Result.success(new ShowRouteResponse(routeService.getRouteById(routeId)));
+        } catch (MyException e) {
+            return Result.result(e.getEnumExceptionType());
+        }
+    }
+
+    @Auth
+    @PostMapping(value = "/createRoute", produces = "application/json")
+    @ApiOperation(value = "创建一个帖子")
+    public Result createPost(@NotNull @RequestBody CreateRouteRequest createRouteRequest) {
+        try {
+            return Result.success(routeService.createRoute(createRouteRequest));
         } catch (MyException e) {
             return Result.result(e.getEnumExceptionType());
         }

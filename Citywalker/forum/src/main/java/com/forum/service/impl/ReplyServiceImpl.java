@@ -78,6 +78,9 @@ public class ReplyServiceImpl implements ReplyService {
                 .build();
 
         Comment comment = commentMapper.selectById(reply.getCommentId());
+        if (comment == null) {
+            throw new MyException(EnumExceptionType.COMENT_NOT_EXIST);
+        }
         comment.setReplies(comment.getReplies() + 1);
         if (commentMapper.updateById(comment) == 0) {
             throw new MyException(EnumExceptionType.UPDATE_FAILED);

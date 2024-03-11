@@ -174,7 +174,7 @@ public class NoticeServiceImpl implements NoticeService {
         }
     }
 
-    private String getName(int type) {
+    public String getName(int type) {
         switch (type) {
             case 0:
                 return "系统消息";

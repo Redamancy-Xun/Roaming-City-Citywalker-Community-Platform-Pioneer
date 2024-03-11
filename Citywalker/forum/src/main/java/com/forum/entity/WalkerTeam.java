@@ -68,4 +68,8 @@ public class WalkerTeam {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @ApiModelProperty("创建时间")
     private Date createAt;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @ApiModelProperty("删除时间")
+    private Date deleteAt;
 }

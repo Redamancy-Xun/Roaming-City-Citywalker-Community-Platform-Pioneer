@@ -122,7 +122,8 @@ public class UserServiceImpl implements UserService {
         if (SHADOW_TEST.equals(code)) {
             sessionUtils.setSessionId(SHADOW_TEST);
             SessionData sessionData = new SessionData();
-            redisUtils.set(SHADOW_TEST,sessionData,86400);
+            sessionData.setId(SHADOW_TEST);
+            redisUtils.set(SHADOW_TEST, sessionData, 86400);
             return new LoginInfo(SHADOW_TEST, 0, SHADOW_TEST, sessionData);
         }
 
@@ -283,12 +284,12 @@ public class UserServiceImpl implements UserService {
         userInfo.put("userInfo", new ShowUserResponse(user));
 
         QueryWrapper<WalkerTeam> walkerTeamQueryWrapper = new QueryWrapper<>();
-        walkerTeamQueryWrapper.eq("userId", userId);
+        walkerTeamQueryWrapper.eq("user_id", userId);
         walkerTeamQueryWrapper.isNull("delete_at");
         userInfo.put("walkerTeam", walkerTeamMapper.selectList(walkerTeamQueryWrapper));
 
         QueryWrapper<Post> postQueryWrapper = new QueryWrapper<>();
-        postQueryWrapper.eq("userId", userId);
+        postQueryWrapper.eq("user_id", userId);
         postQueryWrapper.isNull("delete_at");
         userInfo.put("posts", postMapper.selectList(postQueryWrapper));
 
@@ -314,7 +315,7 @@ public class UserServiceImpl implements UserService {
         PageHelper.startPage(page, pageSize);
 
         QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
-        userQueryWrapper.like("name","%name%");
+        userQueryWrapper.like("username","%"+ name +"%");
 
         return new Page<>(new PageInfo<>(userMapper.selectList(userQueryWrapper)));
     }
@@ -332,7 +333,7 @@ public class UserServiceImpl implements UserService {
 
         if (updateUserRequest.getUsername() != null){
             QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
-            userQueryWrapper.eq("name",updateUserRequest.getUsername());
+            userQueryWrapper.eq("username",updateUserRequest.getUsername());
             if(userMapper.selectCount(userQueryWrapper) > 0){
                 throw new MyException(EnumExceptionType.USERNAME_EXIST);
             }
@@ -435,7 +436,7 @@ public class UserServiceImpl implements UserService {
 
         userInfo.put("userNotices", unreadMap.get(userId + ":" + 7));
         for (int i = 1; i < 7; i++) {
-            unread += unreadMap.get(userId + ":" + i);
+            unread += unreadMap.get(noticeService.getName(i));
         }
         userInfo.put("likeAndReply", unread);
 

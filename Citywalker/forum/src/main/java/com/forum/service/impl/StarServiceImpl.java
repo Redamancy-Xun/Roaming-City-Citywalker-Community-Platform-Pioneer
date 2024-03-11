@@ -100,6 +100,9 @@ public class StarServiceImpl implements StarService {
         starQueryWrapper.isNull("delete_at");
 
         Star star = starMapper.selectOne(starQueryWrapper);
+        if (star == null) {
+            throw new MyException(EnumExceptionType.UNSATR_FAIL);
+        }
         star.setDeleteAt(new Date());
         if (starMapper.updateById(star) == 0) {
             throw new MyException(EnumExceptionType.UPDATE_FAILED);

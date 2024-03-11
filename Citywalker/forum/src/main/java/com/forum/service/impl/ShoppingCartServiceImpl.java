@@ -22,10 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -62,7 +59,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 
         String userId = sessionUtils.getUserId();
         QueryWrapper<ShoppingCart> shoppingCartQueryWrapper = new QueryWrapper<>();
-        shoppingCartQueryWrapper.eq("userId", userId);
+        shoppingCartQueryWrapper.eq("user_id", userId);
         ShoppingCart shoppingCart = shoppingCartMapper.selectOne(shoppingCartQueryWrapper);
 
         int count = 0;
@@ -104,12 +101,21 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     public ShowShoppingCartReponse addShoppingCart(Long routeId, Integer routePeople, String routeTime) throws MyException {
         String userId = sessionUtils.getUserId();
         QueryWrapper<ShoppingCart> shoppingCartQueryWrapper = new QueryWrapper<>();
-        shoppingCartQueryWrapper.eq("userId", userId);
+        shoppingCartQueryWrapper.eq("user_id", userId);
         ShoppingCart shoppingCart = shoppingCartMapper.selectOne(shoppingCartQueryWrapper);
 
-        List<Long> routeIdList =  JSON.parseObject(shoppingCart.getRoutes(), new TypeReference<List<Long>>(){});
-        Map<Long, Integer> peopleMap = JSON.parseObject(shoppingCart.getRoutePeople(), new TypeReference<Map<Long, Integer>>(){});
-        Map<Long, String> timeMap = JSON.parseObject(shoppingCart.getRouteTime(), new TypeReference<Map<Long, String>>(){});
+        List<Long> routeIdList = new ArrayList<>();
+        Map<Long, Integer> peopleMap = new HashMap<>();
+        Map<Long, String> timeMap = new HashMap<>();
+        if (shoppingCart.getRoutes() != null) {
+            routeIdList = JSON.parseObject(shoppingCart.getRoutes(), new TypeReference<List<Long>>(){});
+        }
+        if (shoppingCart.getRoutePeople() != null) {
+            peopleMap = JSON.parseObject(shoppingCart.getRoutePeople(), new TypeReference<Map<Long, Integer>>(){});
+        }
+        if (shoppingCart.getRouteTime() != null) {
+            timeMap = JSON.parseObject(shoppingCart.getRouteTime(), new TypeReference<Map<Long, String>>(){});
+        }
         routeIdList.add(routeId);
         peopleMap.put(routeId, routePeople);
         timeMap.put(routeId, routeTime);
@@ -140,7 +146,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     public void deleteShoppingCart(Long routeId) {
         String userId = sessionUtils.getUserId();
         QueryWrapper<ShoppingCart> shoppingCartQueryWrapper = new QueryWrapper<>();
-        shoppingCartQueryWrapper.eq("userId", userId);
+        shoppingCartQueryWrapper.eq("user_id", userId);
         ShoppingCart shoppingCart = shoppingCartMapper.selectOne(shoppingCartQueryWrapper);
 
         List<Long> routeIdList =  JSON.parseObject(shoppingCart.getRoutes(), new TypeReference<List<Long>>(){});

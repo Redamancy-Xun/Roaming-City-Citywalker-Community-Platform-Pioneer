@@ -82,6 +82,7 @@ public enum EnumExceptionType {
     STAR_EXIST(9043, "已收藏"),
     BOARD_NOT_EXIST(9044, "公告不存在"),
     VIEW_COUNT_ERROR(9045, "浏览量错误"),
+    UNSATR_FAIL(9046, "已取消收藏")
     ;
 
     private final int errorCode;
