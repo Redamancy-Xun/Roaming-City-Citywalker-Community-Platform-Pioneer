@@ -3,7 +3,6 @@ package com.forum.dto;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.forum.common.EnumExceptionType;
-import com.forum.entity.Admin;
 import com.forum.entity.User;
 import com.forum.exception.MyException;
 import io.swagger.annotations.*;
