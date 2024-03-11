@@ -249,12 +249,15 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <version>RELEASE</version>
-            <scope>compile</scope>
-        </dependency>
+
+        <!-- testng 的版本指定为了 “RELEASE”。这种配置意味着 Maven 将尝试从 Maven 仓库中获取最新的稳定版本。然而，这可能导致不确定的结果，因为你并不总是获取到与你当前环境兼容的版本。
+        为了确保你的项目能够在当前的 Java 运行时环境中正常运行，建议指定一个明确的 TestNG 版本号，而不是使用 “RELEASE”。你可以查看当前的 TestNG 版本，然后将其指定为依赖项-->
+<!--        <dependency>-->
+<!--            <groupId>org.testng</groupId>-->
+<!--            <artifactId>testng</artifactId>-->
+<!--            <version>RELEASE</version>-->
+<!--            <scope>compile</scope>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-test</artifactId>

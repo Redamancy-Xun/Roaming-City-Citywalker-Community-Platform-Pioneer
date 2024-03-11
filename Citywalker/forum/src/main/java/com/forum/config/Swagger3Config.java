@@ -28,7 +28,7 @@ public class Swagger3Config {
         return new ApiInfoBuilder()
                 .title("漫游城——citywalker社群平台先行者")
                 .description("接口文档")
-                // .termsOfServiceUrl("http://localhost:8080/swagger-ui.html")//数据源
+                //.termsOfServiceUrl("http://localhost:8080/swagger-ui.html")//数据源
                 .version("1.0")
                 .build();
     }
