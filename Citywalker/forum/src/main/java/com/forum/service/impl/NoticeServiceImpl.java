@@ -501,30 +501,31 @@ public class NoticeServiceImpl implements NoticeService {
      */
     public NoticeInfo getNoticeById(Long id) {
         Notice notice = noticeMapper.selectById(id);
-        User user = userMapper.selectById(notice.getSenderId());
+        User sender = userMapper.selectById(notice.getSenderId());
 
         //如果是点赞或评论消息，就需要获取帖子或评论信息
         if (notice.getType() == 1 || notice.getType() == 2) {
             PostInfo post = postService.getPostById(notice.getObjectId());
-            return new NoticeInfo(notice, user, post);
+            return new NoticeInfo(notice, sender, post);
         } else if (notice.getType() == 3 || notice.getType() == 4) {
             //如果是点赞或评论消息，就需要获取评论信息
             CommentInfo comment = commentService.getCommentById(notice.getObjectId());
-            return new NoticeInfo(notice, user, comment);
+            return new NoticeInfo(notice, sender, comment);
         } else if (notice.getType() == 5 || notice.getType() == 6) {
             //如果是点赞或评论消息，就需要获取回复信息
             ReplyInfo reply = replyService.getReplyById(notice.getObjectId());
-            return new NoticeInfo(notice, user, reply);
+            return new NoticeInfo(notice, sender, reply);
         } else if (notice.getType() == 0) {
             //如果是订单消息，就需要获取订单信息
             ShowRouteResponse route = new ShowRouteResponse(routeMapper.selectById(notice.getObjectId()));
+            User user = userMapper.selectById(sessionUtils.getUserId());
             return new NoticeInfo(notice, user, route);
         } else if (notice.getType() == 7) {
             //如果是用户消息，就需要获取用户信息
-            return new NoticeInfo(notice, user);
+            return new NoticeInfo(notice, sender);
         }
 
-        return new NoticeInfo(notice, user);
+        return new NoticeInfo(notice, sender);
     }
 }
 

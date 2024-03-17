@@ -94,6 +94,8 @@ public class LikeServiceImpl implements LikeService {
             Post post = postMapper.selectById(objectId);
             likePost(post);
             likes.setToUserId(post.getUserId());
+
+            noticeService.SysSend(objectId, post.getUserId(), 1, userId, null);
         } else if (type == 1) {
             Comment comment = commentMapper.selectById(objectId);
             if (comment == null || comment.getDeleteAt() != null) {

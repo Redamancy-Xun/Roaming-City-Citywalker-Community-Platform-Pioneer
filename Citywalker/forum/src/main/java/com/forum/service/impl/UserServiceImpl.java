@@ -454,12 +454,12 @@ public class UserServiceImpl implements UserService {
         User user = userMapper.selectById(userId);
         userInfo.put("userInfo", new ShowUserResponse(user));
 
-        userInfo.put("userNotices", unreadMap.get(userId + ":" + 7));
+        userInfo.put("userNotices", unreadMap.get(userId + ":" + 7) == null ? 0 : unreadMap.get(userId + ":" + 7));
         for (int i = 1; i < 7; i++) {
             unread += unreadMap.get(noticeService.getName(i));
         }
         userInfo.put("likeAndReply", unread);
-        userInfo.put("myOrders", unreadMap.get(userId + ":" + 0));
+        userInfo.put("myOrders", unreadMap.get(userId + ":" + 0) == null ? 0 : unreadMap.get(userId + ":" + 0));
 
         return userInfo;
     }
