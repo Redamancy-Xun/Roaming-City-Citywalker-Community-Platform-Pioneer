@@ -304,7 +304,7 @@ public class UserServiceImpl implements UserService {
         userInfo.put("posts", postMapper.selectList(postQueryWrapper));
 
         QueryWrapper<Buy> buyQueryWrapper = new QueryWrapper<>();
-        buyQueryWrapper.eq("userId", userId);
+        buyQueryWrapper.eq("user_id", userId);
         buyQueryWrapper.isNull("delete_at");
         Buy buy = buyMapper.selectOne(buyQueryWrapper);
         List<Route> routes = new ArrayList<>();

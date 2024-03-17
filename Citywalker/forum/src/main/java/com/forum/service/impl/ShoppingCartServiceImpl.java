@@ -208,8 +208,8 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 
         // 给用户订单信息内加入已走路线
         QueryWrapper<Buy> buyQueryWrapper = new QueryWrapper<>();
-        buyQueryWrapper.eq("userId", userId);
-        buyQueryWrapper.isNull("deleteAt");
+        buyQueryWrapper.eq("user_id", userId);
+        buyQueryWrapper.isNull("delete_at");
         Buy buy = buyMapper.selectOne(buyQueryWrapper);
         List<Long> buyRoutes = buy.getBuyRoutes() == null ? new ArrayList<>() : JSON.parseObject(buy.getBuyRoutes(), new TypeReference<List<Long>>(){});
         buyRoutes.addAll(routeId);
