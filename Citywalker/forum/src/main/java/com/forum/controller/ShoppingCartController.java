@@ -6,6 +6,7 @@ import com.forum.common.Result;
 import com.forum.controller.response.ShowRouteResponse;
 import com.forum.entity.Route;
 import com.forum.exception.MyException;
+import com.forum.service.NoticeService;
 import com.forum.service.ShoppingCartService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -76,5 +77,19 @@ public class ShoppingCartController {
         }
     }
 
+    @Auth
+    @PostMapping(value = "/buy", produces = "application/json")
+    @ApiOperation(value = "购买购物车内路线")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "routeId", value = "routeId", required = true, paramType = "query", dataType = "List<Long>"),
+    })
+    public Result buyShoppingCart(@RequestParam("routeId") List<Long> routeId) {
+        try {
+            shoppingCartService.buyShoppingCart(routeId);
+            return Result.success("购买成功");
+        } catch (MyException e) {
+            return Result.result(e.getEnumExceptionType());
+        }
+    }
 
 }

@@ -14,6 +14,7 @@ import com.forum.service.StarService;
 import com.forum.service.UserService;
 import com.forum.util.PageUtils;
 import com.forum.util.SessionUtils;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

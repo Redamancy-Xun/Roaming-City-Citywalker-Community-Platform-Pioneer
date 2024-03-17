@@ -34,6 +34,7 @@ public enum EnumExceptionType {
     DELETE_SHOPPINGCART_FAIL(1022, "购物车删除失败"),
     TEAM_NOT_EXIST(1023, "队伍不存在"),
     DELETE_WALKERTEAM_FAIL(1024, "组队删除失败"),
+    BUY_SHOPPINGCART_FAIL(1025, "购买路线失败"),
 
     /**
      * 武学长

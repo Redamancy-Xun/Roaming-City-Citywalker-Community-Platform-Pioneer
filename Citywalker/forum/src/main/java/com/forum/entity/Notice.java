@@ -44,6 +44,9 @@ public class Notice {
 
     @ApiModelProperty("删除时间")
     private Date deleteAt;
+
+    @ApiModelProperty("是否已读(1为已读，0为未读)")
+    private Integer isRead;
 }
 
 

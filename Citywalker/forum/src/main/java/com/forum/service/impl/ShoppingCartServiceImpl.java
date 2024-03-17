@@ -7,12 +7,15 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.forum.common.EnumExceptionType;
 import com.forum.common.Page;
 import com.forum.controller.response.ShowShoppingCartReponse;
+import com.forum.entity.Buy;
 import com.forum.entity.Route;
 import com.forum.entity.ShoppingCart;
 import com.forum.entity.User;
 import com.forum.exception.MyException;
+import com.forum.mapper.BuyMapper;
 import com.forum.mapper.RouteMapper;
 import com.forum.mapper.ShoppingCartMapper;
+import com.forum.service.NoticeService;
 import com.forum.service.ShoppingCartService;
 import com.forum.service.UserService;
 import com.forum.util.SessionUtils;
@@ -37,6 +40,12 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private BuyMapper buyMapper;
+
+    @Autowired
+    private NoticeService noticeService;
 
     @Autowired
     private SessionUtils sessionUtils;
@@ -164,5 +173,56 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         if (shoppingCartMapper.updateById(shoppingCart) == 0) {
             throw new MyException(EnumExceptionType.DELETE_SHOPPINGCART_FAIL);
         }
+    }
+
+    /**
+     * 购买购物车中的路线
+     * @param routeId 路线id
+     * @throws MyException 通用异常
+     */
+    @Override
+    public void buyShoppingCart(List<Long> routeId) {
+        String userId = sessionUtils.getUserId();
+        QueryWrapper<ShoppingCart> shoppingCartQueryWrapper = new QueryWrapper<>();
+        shoppingCartQueryWrapper.eq("user_id", userId);
+        ShoppingCart shoppingCart = shoppingCartMapper.selectOne(shoppingCartQueryWrapper);
+
+        // 清理购物车内所买的路线
+        List<Long> routeIdList =  JSON.parseObject(shoppingCart.getRoutes(), new TypeReference<List<Long>>(){});
+        Map<Long, Integer> peopleMap = JSON.parseObject(shoppingCart.getRoutePeople(), new TypeReference<Map<Long, Integer>>(){});
+        Map<Long, String> timeMap = JSON.parseObject(shoppingCart.getRouteTime(), new TypeReference<Map<Long, String>>(){});
+
+        for (Long id : routeId) {
+            routeIdList.remove(id);
+            peopleMap.remove(id);
+            timeMap.remove(id);
+        }
+
+        shoppingCart.setRoutes(JSON.toJSONString(routeIdList));
+        shoppingCart.setRoutePeople(JSON.toJSONString(peopleMap));
+        shoppingCart.setRouteTime(JSON.toJSONString(timeMap));
+
+        if (shoppingCartMapper.updateById(shoppingCart) == 0) {
+            throw new MyException(EnumExceptionType.BUY_SHOPPINGCART_FAIL);
+        }
+
+        // 给用户订单信息内加入已走路线
+        QueryWrapper<Buy> buyQueryWrapper = new QueryWrapper<>();
+        buyQueryWrapper.eq("userId", userId);
+        buyQueryWrapper.isNull("deleteAt");
+        Buy buy = buyMapper.selectOne(buyQueryWrapper);
+        List<Long> buyRoutes = buy.getBuyRoutes() == null ? new ArrayList<>() : JSON.parseObject(buy.getBuyRoutes(), new TypeReference<List<Long>>(){});
+        buyRoutes.addAll(routeId);
+        buy.setBuyRoutes(JSON.toJSONString(buyRoutes));
+        if (buyMapper.updateById(buy) == 0) {
+            throw new MyException(EnumExceptionType.BUY_SHOPPINGCART_FAIL);
+        }
+
+        // 给用户发送购买订单成功系统信息
+        User user = userService.getUserById(userId);
+        for (Long id : routeId) {
+            noticeService.sendBuySuccessNotice(user, id);
+        }
+
     }
 }

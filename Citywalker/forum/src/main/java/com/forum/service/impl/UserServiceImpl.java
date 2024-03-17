@@ -42,6 +42,9 @@ public class UserServiceImpl implements UserService {
     private PostMapper postMapper;
 
     @Autowired
+    private BuyMapper buyMapper;
+
+    @Autowired
     private WalkerTeamMapper walkerTeamMapper;
 
     @Autowired
@@ -98,9 +101,16 @@ public class UserServiceImpl implements UserService {
                 .userId(openid)
                 .build();
 
+        Buy buy = Buy.builder()
+                .buyRoutes(null)
+                .userId(openid)
+                .deleteAt(null)
+                .build();
+
         //调用 userMapper 的 insert 方法将用户信息插入到数据库中
         userMapper.insert(user);
         shoppingCartMapper.insert(shoppingCart);
+        buyMapper.insert(buy);
 
         return user;
     }
@@ -293,6 +303,16 @@ public class UserServiceImpl implements UserService {
         postQueryWrapper.isNull("delete_at");
         userInfo.put("posts", postMapper.selectList(postQueryWrapper));
 
+        QueryWrapper<Buy> buyQueryWrapper = new QueryWrapper<>();
+        buyQueryWrapper.eq("userId", userId);
+        buyQueryWrapper.isNull("delete_at");
+        Buy buy = buyMapper.selectOne(buyQueryWrapper);
+        List<Route> routes = new ArrayList<>();
+        for (Long routeId : JSON.parseObject(buy.getBuyRoutes(), new TypeReference<List<Long>>(){})) {
+            routes.add(routeMapper.selectById(routeId));
+        }
+        userInfo.put("goneRoutes", routes);
+
         return userInfo;
     }
 
@@ -439,6 +459,7 @@ public class UserServiceImpl implements UserService {
             unread += unreadMap.get(noticeService.getName(i));
         }
         userInfo.put("likeAndReply", unread);
+        userInfo.put("myOrders", unreadMap.get(userId + ":" + 0));
 
         return userInfo;
     }

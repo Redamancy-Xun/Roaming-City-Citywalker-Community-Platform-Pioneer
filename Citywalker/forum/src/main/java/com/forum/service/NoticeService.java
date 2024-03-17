@@ -3,6 +3,7 @@ package com.forum.service;
 import com.forum.common.Page;
 import com.forum.controller.response.NoticeInfo;
 import com.forum.entity.Notice;
+import com.forum.entity.User;
 
 import java.util.List;
 import java.util.Map;
@@ -29,7 +30,11 @@ public interface NoticeService {
 
     List<NoticeInfo> getLikeAndReplyNotices(Integer page, Integer pageSize);
 
+    List<NoticeInfo> getBuyNotices(Integer page, Integer pageSize);
+
     NoticeInfo getNoticeById(Long id);
 
     String getName(int type);
+
+    void sendBuySuccessNotice(User user, Long routeId);
 }

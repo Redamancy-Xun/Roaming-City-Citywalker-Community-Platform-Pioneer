@@ -51,6 +51,9 @@ public class NoticeInfo {
     @ApiModelProperty("发送者用户头像")
     private String userAvatar;
 
+    @ApiModelProperty("是否已读")
+    private Boolean isRead;
+
     public NoticeInfo(Notice notice, User user, Object object){
         this.content = notice.getContent();
         this.deleteAt = notice.getDeleteAt();
@@ -60,6 +63,7 @@ public class NoticeInfo {
         this.sendAt = notice.getSendAt();
         this.senderId = notice.getSenderId();
         this.type = notice.getType();
+        this.isRead = notice.getIsRead();
 
         this.userAvatar = user.getHeadportrait();
         this.userName = user.getUsername();
@@ -76,6 +80,7 @@ public class NoticeInfo {
         this.sendAt = notice.getSendAt();
         this.senderId = notice.getSenderId();
         this.type = notice.getType();
+        this.isRead = notice.getIsRead();
 
         this.userAvatar = user.getHeadportrait();
         this.userName = user.getUsername();
@@ -90,5 +95,6 @@ public class NoticeInfo {
         this.sendAt = notice.getSendAt();
         this.senderId = notice.getSenderId();
         this.type = notice.getType();
+        this.isRead = notice.getIsRead();
     }
 }

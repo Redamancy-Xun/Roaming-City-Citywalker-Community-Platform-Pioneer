@@ -1,24 +1,24 @@
 package com.forum.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.forum.controller.response.CommentInfo;
-import com.forum.controller.response.PostInfo;
-import com.forum.controller.response.ReplyInfo;
+import com.forum.controller.response.*;
 import com.forum.entity.Post;
+import com.forum.entity.Route;
 import com.forum.entity.User;
+import com.forum.mapper.RouteMapper;
 import com.forum.service.*;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.forum.common.EnumExceptionType;
 import com.forum.common.Page;
 import com.forum.exception.MyException;
-import com.forum.controller.response.NoticeInfo;
 import com.forum.entity.Notice;
 import com.forum.mapper.NoticeMapper;
 import com.forum.mapper.UserMapper;
 import com.forum.util.MessageUtil;
 import com.forum.util.RedisUtils;
 import com.forum.util.SessionUtils;
+import org.apache.http.conn.routing.RouteInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,6 +45,9 @@ public class NoticeServiceImpl implements NoticeService {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private RouteMapper routeMapper;
 
     @Autowired
     private SessionUtils sessionUtils;
@@ -101,10 +104,24 @@ public class NoticeServiceImpl implements NoticeService {
     }
 
     /**
-        * @description: 发送消息
-        * @param: [message, senderId, receiverId, type]
-        * type: 0:系统 1:给帖子点赞 2:给帖子回复 3:给评论点赞 4:给评论回复 5:给回复点赞 6:给回复回复 7:给用户发信息
-        * @return: void
+     * 系统发送用户订单消息
+     * @param user 用户
+     * @param routeId 路线id
+     * @throws MyException 通用异常
+     * @return viod
+     */
+    @Override
+    public void sendBuySuccessNotice(User user, Long routeId) throws MyException {
+        Route route = routeMapper.selectById(routeId);
+        String msg = user.getUsername() + "成功购买路线：" + route.getTheme() + "\n" + route.getSubtitle();
+        SysSend(routeId, user.getId(), 0, msg, null, null);
+    }
+
+    /**
+     * 发送消息
+     * @param: message, senderId, receiverId, type
+     * type: 0:系统 1:给帖子点赞 2:给帖子回复 3:给评论点赞 4:给评论回复 5:给回复点赞 6:给回复回复 7:给用户发信息
+     * @return: void
      */
     @Transactional(rollbackFor = MyException.class)
     @Override
@@ -133,17 +150,20 @@ public class NoticeServiceImpl implements NoticeService {
             }
         }
 
+        //如果没有消息内容，就自动填充，比如评论消息
         if (msg == null && objectId != null) {
             String senderName = userMapper.selectById(senderId).getUsername();
             msg = MessageUtil.getNoticeMessage(senderName, type, content);
         }
 
+        //如果是系统消息，就给所有人发
         if (receiverId == null) {
             List<String> ids = userMapper.selectAllUserId();
             for (String id : ids) {
                 createAndSendNotice(objectId, msg, id, type, senderId);
             }
         } else {
+            //否则就给指定人发
             createAndSendNotice(objectId, msg, receiverId, type, senderId);
         }
 
@@ -159,6 +179,7 @@ public class NoticeServiceImpl implements NoticeService {
                 .senderId(senderId)
                 .content(msg)
                 .objectId(objectId)
+                .isRead(0)
                 .build();
 
         noticeMapper.insert(notice);
@@ -371,9 +392,14 @@ public class NoticeServiceImpl implements NoticeService {
         List<Notice> notices = new Page<>(new PageInfo<>(noticeMapper.selectList(noticeQueryWrapper))).getItems();
         List<NoticeInfo> noticeInfos = new ArrayList<>();
         for (Notice notice : notices) {
-            User user = userMapper.selectById(notice.getSenderId());
-            NoticeInfo noticeInfo = new NoticeInfo(notice, user);
-            noticeInfos.add(noticeInfo);
+            noticeInfos.add(getNoticeById(notice.getId()));
+        }
+
+        //将消息设置为已读
+        List<Notice> noticeList = noticeMapper.selectList(noticeQueryWrapper);
+        for (Notice notice : noticeList) {
+            notice.setIsRead(1);
+            noticeMapper.updateById(notice);
         }
 
         return noticeInfos;
@@ -414,6 +440,56 @@ public class NoticeServiceImpl implements NoticeService {
             noticeInfos.add(getNoticeById(notice.getId()));
         }
 
+        //将消息设置为已读
+        List<Notice> noticeList = noticeMapper.selectList(noticeQueryWrapper);
+        for (Notice notice : noticeList) {
+            notice.setIsRead(1);
+            noticeMapper.updateById(notice);
+        }
+
+        return noticeInfos;
+    }
+
+    /**
+     * 获取我的订单列表
+     * @param page 页码
+     * @param pageSize 每页大小
+     * @return 消息详情
+     */
+    @Override
+    public List<NoticeInfo> getBuyNotices(Integer page, Integer pageSize) {
+        if (page == null || page < 1) {
+            page = 1;
+        }
+        if (pageSize == null || pageSize < 1) {
+            pageSize = 10;
+        }
+
+        String userId = sessionUtils.getUserId();
+        String key = getKey(userId, 0);
+        if (redisUtils.get(key) != null) {
+            redisUtils.del(key);
+        }
+
+        QueryWrapper<Notice> noticeQueryWrapper = new QueryWrapper<>();
+        noticeQueryWrapper.eq("receiver_id", userId);
+        noticeQueryWrapper.isNull("delete_at");
+        noticeQueryWrapper.eq("type", 0);
+        noticeQueryWrapper.orderByDesc("send_at");
+        PageHelper.startPage(page, pageSize);
+        List<Notice> notices = new Page<>(new PageInfo<>(noticeMapper.selectList(noticeQueryWrapper))).getItems();
+        List<NoticeInfo> noticeInfos = new ArrayList<>();
+        for (Notice notice : notices) {
+            noticeInfos.add(getNoticeById(notice.getId()));
+        }
+
+        //将消息设置为已读
+        List<Notice> noticeList = noticeMapper.selectList(noticeQueryWrapper);
+        for (Notice notice : noticeList) {
+            notice.setIsRead(1);
+            noticeMapper.updateById(notice);
+        }
+
         return noticeInfos;
     }
 
@@ -426,15 +502,26 @@ public class NoticeServiceImpl implements NoticeService {
     public NoticeInfo getNoticeById(Long id) {
         Notice notice = noticeMapper.selectById(id);
         User user = userMapper.selectById(notice.getSenderId());
+
+        //如果是点赞或评论消息，就需要获取帖子或评论信息
         if (notice.getType() == 1 || notice.getType() == 2) {
             PostInfo post = postService.getPostById(notice.getObjectId());
             return new NoticeInfo(notice, user, post);
         } else if (notice.getType() == 3 || notice.getType() == 4) {
+            //如果是点赞或评论消息，就需要获取评论信息
             CommentInfo comment = commentService.getCommentById(notice.getObjectId());
             return new NoticeInfo(notice, user, comment);
         } else if (notice.getType() == 5 || notice.getType() == 6) {
+            //如果是点赞或评论消息，就需要获取回复信息
             ReplyInfo reply = replyService.getReplyById(notice.getObjectId());
             return new NoticeInfo(notice, user, reply);
+        } else if (notice.getType() == 0) {
+            //如果是订单消息，就需要获取订单信息
+            ShowRouteResponse route = new ShowRouteResponse(routeMapper.selectById(notice.getObjectId()));
+            return new NoticeInfo(notice, user, route);
+        } else if (notice.getType() == 7) {
+            //如果是用户消息，就需要获取用户信息
+            return new NoticeInfo(notice, user);
         }
 
         return new NoticeInfo(notice, user);
