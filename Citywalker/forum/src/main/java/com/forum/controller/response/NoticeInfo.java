@@ -52,7 +52,7 @@ public class NoticeInfo {
     private String userAvatar;
 
     @ApiModelProperty("是否已读")
-    private Boolean isRead;
+    private Integer isRead;
 
     public NoticeInfo(Notice notice, User user, Object object){
         this.content = notice.getContent();
