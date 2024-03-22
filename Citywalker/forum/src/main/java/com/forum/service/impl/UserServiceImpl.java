@@ -5,6 +5,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.forum.common.Page;
 import com.forum.controller.request.UpdateUserRequest;
+import com.forum.controller.request.UserSignupRequest;
 import com.forum.controller.response.ShowUserResponse;
 import com.forum.entity.*;
 import com.forum.mapper.*;
@@ -113,6 +114,100 @@ public class UserServiceImpl implements UserService {
         buyMapper.insert(buy);
 
         return user;
+    }
+
+    /**
+     * 注册
+     * @param userSignupRequest 用户注册请求
+     * @return User
+     * @throws MyException 通用异常
+     */
+    @Override
+    public User signUp2(UserSignupRequest userSignupRequest) throws MyException {
+
+        //使用 AssertUtil.notNull 方法来验证 userSignupRequest 参数不为空，如果为空则抛出自定义异常 EnumExceptionType.INPUT_NULL
+        AssertUtil.notNull(userSignupRequest, EnumExceptionType.INPUT_NULL);
+
+        //构造一个 QueryWrapper 用于查询用户信息，确认邮箱没有被使用过
+        QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
+        userQueryWrapper.eq("email", userSignupRequest.getEmail());
+        userQueryWrapper.isNull("delete_at");
+        if (userMapper.selectOne(userQueryWrapper) != null) {
+            throw new MyException(EnumExceptionType.EMAIL_HAS_BEEN_SIGNED_UP);
+        }
+
+        //构造一个从数字 0 到 5 的随机数
+        int random = (int) (Math.random() * 6);
+
+        //创建一个 User 对象，设置用户的 id，角色设置为 2，用户名随机生成，头像路径设定为固定的路径拼接上一个图片文件名
+        User user = User.builder()
+                .id(UUID.randomUUID().toString().substring(0, 5))
+                .version(1)
+                .role(2)
+                .birthday(new Date())
+                .age(0)
+                .username(userSignupRequest.getUsername())
+                .password(userSignupRequest.getPassword())
+                .email(userSignupRequest.getEmail())
+                .gender(2)
+                .headportrait(IMAGE_PATH + "cityWalkerGo" + random + ".png")
+                .signature("新晋citywalker一枚~~~")
+                .build();
+
+        ShoppingCart shoppingCart = ShoppingCart.builder()
+                .userId(user.getId())
+                .build();
+
+        Buy buy = Buy.builder()
+                .buyRoutes(null)
+                .userId(user.getId())
+                .deleteAt(null)
+                .build();
+
+        //调用 userMapper 的 insert 方法将用户信息插入到数据库中
+        //调用 shoppingCartMapper 的 insert 方法将购物车信息插入到数据库中
+        //调用 buyMapper 的 insert 方法将购买信息插入到数据库中
+        userMapper.insert(user);
+        shoppingCartMapper.insert(shoppingCart);
+        buyMapper.insert(buy);
+
+        return user;
+    }
+
+
+    /**
+     * 登录
+     * @param information 用户名或邮箱
+     * @param password 密码
+     * @return LoginInfo
+     * @throws MyException 异常
+     */
+    @Override
+    public LoginInfo login2(String information, String password) throws MyException {
+        //使用 AssertUtil.notNull 方法来验证 information 和 password 参数不为空，如果为空则抛出自定义异常 EnumExceptionType.INPUT_NULL
+        AssertUtil.notNull(information, EnumExceptionType.INPUT_NULL);
+        AssertUtil.notNull(password, EnumExceptionType.INPUT_NULL);
+
+        //构造一个 QueryWrapper 用于查询用户信息，根据 information 从数据库中查询对应的用户信息
+        QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
+        userQueryWrapper.eq("username", information).or().eq("email", information);
+        User user = userMapper.selectOne(userQueryWrapper);
+
+        //验证查询到的用户信息不为空，如果为空则抛出自定义异常 EnumExceptionType.USER_NOT_EXIST
+        AssertUtil.notNull(user, EnumExceptionType.USER_NOT_EXIST);
+
+        //验证密码是否正确，如果不正确则抛出自定义异常 EnumExceptionType.PASSWORD_ERROR
+        AssertUtil.isTrue(user.getPassword().equals(password), EnumExceptionType.PASSWORD_ERROR);
+
+        //生成 sessionId 和 sessionData，分别存入 sessionUtils 和 redisUtils 中，设置过期时间为 86400 秒
+        String sessionId = sessionUtils.generateSessionId();
+        SessionData sessionData = new SessionData(user);
+        sessionUtils.setSessionId(sessionId);
+        redisUtils.set(user.getId(), sessionId, 86400);
+        redisUtils.set(sessionId, sessionData, 86400);
+
+        //最后构造一个 LoginInfo 对象，包含 openid、用户角色信息、sessionId 和 sessionData，返回给前端作为登录信息
+        return new LoginInfo(user.getId(), user.getRole(), sessionId, sessionData);
     }
 
     /**
@@ -307,6 +402,12 @@ public class UserServiceImpl implements UserService {
         buyQueryWrapper.eq("user_id", userId);
         buyQueryWrapper.isNull("delete_at");
         Buy buy = buyMapper.selectOne(buyQueryWrapper);
+        //如果用户没有购买过路线，则将 goneRoutes 设置为空列表
+        if (buy.getBuyRoutes() == null) {
+            userInfo.put("goneRoutes", new ArrayList<>());
+            return userInfo;
+        }
+        //如果用户购买过路线，则将 goneRoutes 设置为用户购买的路线信息
         List<Route> routes = new ArrayList<>();
         for (Long routeId : JSON.parseObject(buy.getBuyRoutes(), new TypeReference<List<Long>>(){})) {
             routes.add(routeMapper.selectById(routeId));
@@ -421,7 +522,7 @@ public class UserServiceImpl implements UserService {
         String userId = sessionUtils.getUserId();
         User user = userMapper.selectById(userId);
 
-        if(user.getRole() == 0){
+        if (user.getRole() == 0) {
             throw new MyException(EnumExceptionType.CAN_NOT_DELETE);
         }
 
@@ -429,10 +530,14 @@ public class UserServiceImpl implements UserService {
         user.setLabel(null);
         user.setAge(null);
         user.setBirthday(null);
-        user.setEmail("");
-        user.setRole(4);
+        user.setEmail(null);
         user.setGender(2);
-        user.setHeadportrait(IMAGE_PATH + "voecnu.png");
+        user.setHeadportrait(IMAGE_PATH + "cityWalkerGo" + (int) (Math.random() * 6) + ".png");
+        user.setSignature("用户已注销");
+        user.setPassword(null);
+        user.setRole(4);
+        user.setVersion(user.getVersion() + 1);
+        user.setRole(null);
 
         if(userMapper.updateById(user) == 0){
             throw new MyException(EnumExceptionType.UPDATE_FAILED);

@@ -2,6 +2,7 @@ package com.forum.service;
 
 import com.forum.common.Page;
 import com.forum.controller.request.UpdateUserRequest;
+import com.forum.controller.request.UserSignupRequest;
 import com.forum.controller.response.LoginInfo;
 import com.forum.entity.Route;
 import com.forum.entity.User;
@@ -14,11 +15,15 @@ public interface UserService {
 
     User signUp(String openid) throws MyException;
 
+    User signUp2(UserSignupRequest userSignupRequest) throws MyException;
+
     User confirmPrivacyPolicy(String userId);
 
     User updateUser(UpdateUserRequest updateUserRequest);
 
     LoginInfo login(String code) throws Exception;
+
+    LoginInfo login2(String information, String password) throws MyException;
 
     Page<User> getUserList(Integer page, Integer pageSize) throws MyException;
 

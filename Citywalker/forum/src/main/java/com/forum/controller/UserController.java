@@ -5,6 +5,7 @@ import com.forum.annotation.Auth;
 import com.forum.common.Page;
 import com.forum.common.Result;
 import com.forum.controller.request.UpdateUserRequest;
+import com.forum.controller.request.UserSignupRequest;
 import com.forum.controller.response.LoginInfo;
 import com.forum.controller.response.ShowRouteResponse;
 import com.forum.controller.response.ShowUserResponse;
@@ -54,15 +55,29 @@ public class UserController {
     @PostMapping(value = "/login", produces = "application/json")
     @ApiOperation(value = "登录", response = LoginInfo.class)
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "code", value = "code", required = true, paramType = "query", dataType = "String") })
-    public Result login(@NotNull @RequestParam("code") String code) {
+//          @ApiImplicitParam(name = "code", value = "code", required = true, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "information", value = "information", required = true, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "password", value = "password", required = true, paramType = "query", dataType = "String")
+    })
+    public Result login(@RequestParam("information") String information,
+                        @RequestParam("password") String password) {
         try {
-            return Result.success(userService.login(code.trim()));
+            return Result.success(userService.login2(information, password));
         } catch (Exception e) {
             if (e instanceof MyException) {
                 return Result.result(((MyException) e).getEnumExceptionType());
             }
             return Result.fail(e.getMessage());
+        }
+    }
+
+    @PostMapping(value = "/signUp", produces = "application/json")
+    @ApiOperation(value = "注册", response = LoginInfo.class)
+    public Result signUp(@RequestBody UserSignupRequest userSignupRequest) {
+        try {
+            return Result.success(userService.signUp2(userSignupRequest));
+        } catch (MyException e) {
+            return Result.result(e.getEnumExceptionType());
         }
     }
 

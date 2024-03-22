@@ -26,13 +26,13 @@ public class GlobalController {
     private GlobalService globalService;
 
     @PostMapping(value = "/uploadImage", produces = "application/json")
-    @ApiOperation(value = "上传图片")
+    @ApiOperation(value = "上传图片 file:图片文件")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "file", value = "图片文件", required = true, paramType = "query", dataType = "MultipartFile")})
     public Result uploadImage(@RequestBody MultipartFile file) {
         try {
             return Result.success(globalService.uploadImage(file));
-        }catch (Exception e) {
+        } catch (Exception e) {
             if (e instanceof MyException) {
                 return Result.result(((MyException) e).getEnumExceptionType());
             }
@@ -41,9 +41,9 @@ public class GlobalController {
     }
 
     @PostMapping(value = "/uploadImages", produces = "application/json")
-    @ApiOperation(value = "上传多个图片")
+    @ApiOperation(value = "上传多个图片 files:图片文件数组")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "files", value = "图片文件", required = true, paramType = "query", dataType = "List<MultipartFile>")})
+            @ApiImplicitParam(name = "files", value = "图片文件数组", required = true, paramType = "query", dataType = "List<MultipartFile>")})
     public Result uploadImages(@RequestBody MultipartFile[] files) {
         try {
             for (MultipartFile file : files){

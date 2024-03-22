@@ -43,6 +43,12 @@ public class User implements Serializable {
     @ApiModelProperty("用户名")
     private String username;
 
+    @Column(name = "password", nullable = false)
+    @NotBlank(message = "密码不能为空")
+    @Size(min = 6, max = 20, message = "密码长度为6-20")
+    @ApiModelProperty("密码")
+    private String password;
+
     @Column(name = "signature", nullable = true)
     @ApiModelProperty("个性签名")
     private String signature;

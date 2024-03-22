@@ -7,7 +7,7 @@ package com.forum.common;
 public class CommonConstants {
 
     public final static String SESSION = "session";
-    public final static String USER_FILE_PATH = "/home/ubuntu/static/";
+    public final static String USER_FILE_PATH = "/var/www/html/image/";
     public final static String VERIFICATION_TITLE = "漫游城——citywalker 验证码";
     public final static String AUTH_FILE_PATH = "/home/ubuntu/ver/";
     public final static String IMAGE_PATH = "http://118.178.196.58/image/";
