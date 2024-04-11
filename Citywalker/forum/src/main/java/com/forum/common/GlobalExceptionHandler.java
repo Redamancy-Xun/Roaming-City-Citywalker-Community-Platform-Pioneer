@@ -33,7 +33,7 @@ public class GlobalExceptionHandler {
 //        if(sessionData != null) {
 //            log.error("user: " + JsonUtil.toJSONString(sessionData));
 //        }
-
+        
         Map<String, String> res = new HashMap<>();
         Enumeration<?> temp = request.getParameterNames();
         if (null != temp) {

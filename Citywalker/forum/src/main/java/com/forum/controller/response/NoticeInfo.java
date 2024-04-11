@@ -1,5 +1,6 @@
 package com.forum.controller.response;
 
+import com.forum.common.CommonConstants;
 import com.forum.entity.Notice;
 import com.forum.entity.User;
 import io.swagger.annotations.ApiModel;
@@ -65,7 +66,7 @@ public class NoticeInfo {
         this.type = notice.getType();
         this.isRead = notice.getIsRead();
 
-        this.userAvatar = user.getHeadportrait();
+        this.userAvatar = CommonConstants.IMAGE_PATH + user.getHeadportrait();
         this.userName = user.getUsername();
 
         this.object = object;
@@ -82,7 +83,7 @@ public class NoticeInfo {
         this.type = notice.getType();
         this.isRead = notice.getIsRead();
 
-        this.userAvatar = user.getHeadportrait();
+        this.userAvatar = CommonConstants.IMAGE_PATH + user.getHeadportrait();
         this.userName = user.getUsername();
     }
 

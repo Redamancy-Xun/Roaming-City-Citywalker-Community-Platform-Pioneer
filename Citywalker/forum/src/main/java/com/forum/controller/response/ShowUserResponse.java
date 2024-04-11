@@ -3,6 +3,7 @@ package com.forum.controller.response;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.annotation.*;
+import com.forum.common.CommonConstants;
 import com.forum.entity.User;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -58,7 +59,7 @@ public class ShowUserResponse {
         this.username = user.getUsername();
         this.birthday = user.getBirthday();
         this.email = user.getEmail();
-        this.headportrait = user.getHeadportrait();
+        this.headportrait = CommonConstants.IMAGE_PATH + user.getHeadportrait();
         this.gender = user.getGender();
         this.age = user.getAge();
         this.label = JSON.parseObject(user.getLabel(), new TypeReference<List<String>>(){});

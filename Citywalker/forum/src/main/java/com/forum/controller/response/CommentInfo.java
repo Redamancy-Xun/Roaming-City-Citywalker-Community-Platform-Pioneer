@@ -2,6 +2,7 @@ package com.forum.controller.response;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.forum.common.CommonConstants;
 import com.forum.entity.Comment;
 import com.forum.entity.User;
 import io.swagger.annotations.ApiModel;
@@ -9,6 +10,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.awt.image.ImagingOpException;
 import java.util.Date;
 import java.util.List;
 
@@ -68,12 +70,19 @@ public class CommentInfo {
         this.floor = comment.getFloor();
 
         this.userName = user.getUsername();
-        this.userAvatar = user.getHeadportrait();
+        this.userAvatar = CommonConstants.IMAGE_PATH + user.getHeadportrait();
 
         this.isLike = isLike;
 
         String images = comment.getImages();
         this.images = JSON.parseObject(images, new TypeReference<List<String>>(){});
+
+        //如果image里面有对象 给images中的每一个对象加上IMAGE_PATH前缀
+        if (this.images != null && this.images.size() > 0){
+            for (int i = 0; i < this.images.size(); i++) {
+                this.images.set(i, CommonConstants.IMAGE_PATH + this.images.get(i));
+            }
+        }
     }
 }
 

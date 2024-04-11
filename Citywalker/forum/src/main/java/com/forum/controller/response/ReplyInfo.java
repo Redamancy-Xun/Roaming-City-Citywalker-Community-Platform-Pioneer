@@ -1,6 +1,7 @@
 package com.forum.controller.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.forum.common.CommonConstants;
 import com.forum.entity.Reply;
 import com.forum.entity.User;
 import io.swagger.annotations.ApiModel;
@@ -79,9 +80,9 @@ public class ReplyInfo {
         this.likes = reply.getLikes();
 
         this.userName = user.getUsername();
-        this.userAvatar = user.getHeadportrait();
+        this.userAvatar = CommonConstants.IMAGE_PATH + user.getHeadportrait();
 
-        this.replyUserAvatar = replyUser.getHeadportrait();
+        this.replyUserAvatar = CommonConstants.IMAGE_PATH + replyUser.getHeadportrait();
         this.replyUserName = replyUser.getUsername();
 
         this.isLike = isLike;
@@ -100,7 +101,7 @@ public class ReplyInfo {
         this.likes = reply.getLikes();
 
         this.userName = user.getUsername();
-        this.userAvatar = user.getHeadportrait();
+        this.userAvatar = CommonConstants.IMAGE_PATH + user.getHeadportrait();
 
         this.isLike = isLike;
     }

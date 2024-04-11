@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.forum.common.CommonConstants;
 import com.forum.entity.Route;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -88,8 +89,15 @@ public class ShowRouteResponse {
         this.costInclude = route.getCostInclude();
         this.costExclude = route.getCostExclude();
         this.refund = route.getRefund();
-        this.map = route.getMap();
+        this.map = CommonConstants.IMAGE_PATH + route.getMap();
         this.other = route.getOther();
         this.remind = route.getRemind();
+
+        //如果photo里面有对象 给photo中的每一个对象加上IMAGE_PATH前缀
+        if (this.photo != null && this.photo.size() > 0){
+            for (int i = 0; i < this.photo.size(); i++) {
+                this.photo.set(i, CommonConstants.IMAGE_PATH + this.photo.get(i));
+            }
+        }
     }
 }

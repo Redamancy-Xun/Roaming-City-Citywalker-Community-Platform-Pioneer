@@ -2,6 +2,7 @@ package com.forum.controller.response;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.forum.common.CommonConstants;
 import com.forum.entity.Route;
 import com.forum.entity.User;
 import com.forum.entity.WalkerTeam;
@@ -58,5 +59,12 @@ public class ShowWalkerTeamResponse {
         this.introduction = walkerTeam.getIntroduction();
         this.photo = JSON.parseObject(walkerTeam.getPhoto(), new TypeReference<List<String>>(){});
         this.route = route;
+
+        //如果photo里面有对象 给photo中的每一个对象加上IMAGE_PATH前缀
+        if (this.photo != null && this.photo.size() > 0){
+            for (int i = 0; i < this.photo.size(); i++) {
+                this.photo.set(i, CommonConstants.IMAGE_PATH + this.photo.get(i));
+            }
+        }
     }
 }

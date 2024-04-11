@@ -131,7 +131,6 @@ public class UserServiceImpl implements UserService {
         //构造一个 QueryWrapper 用于查询用户信息，确认邮箱没有被使用过
         QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
         userQueryWrapper.eq("email", userSignupRequest.getEmail());
-        userQueryWrapper.isNull("delete_at");
         if (userMapper.selectOne(userQueryWrapper) != null) {
             throw new MyException(EnumExceptionType.EMAIL_HAS_BEEN_SIGNED_UP);
         }
@@ -150,7 +149,7 @@ public class UserServiceImpl implements UserService {
                 .password(userSignupRequest.getPassword())
                 .email(userSignupRequest.getEmail())
                 .gender(2)
-                .headportrait(IMAGE_PATH + "cityWalkerGo" + random + ".png")
+                .headportrait("cityWalkerGo" + random + ".png")
                 .signature("新晋citywalker一枚~~~")
                 .build();
 
@@ -395,7 +394,6 @@ public class UserServiceImpl implements UserService {
 
         QueryWrapper<Post> postQueryWrapper = new QueryWrapper<>();
         postQueryWrapper.eq("user_id", userId);
-        postQueryWrapper.isNull("delete_at");
         userInfo.put("posts", postMapper.selectList(postQueryWrapper));
 
         QueryWrapper<Buy> buyQueryWrapper = new QueryWrapper<>();
@@ -532,7 +530,7 @@ public class UserServiceImpl implements UserService {
         user.setBirthday(null);
         user.setEmail(null);
         user.setGender(2);
-        user.setHeadportrait(IMAGE_PATH + "cityWalkerGo" + (int) (Math.random() * 6) + ".png");
+        user.setHeadportrait("cityWalkerGo" + (int) (Math.random() * 6) + ".png");
         user.setSignature("用户已注销");
         user.setPassword(null);
         user.setRole(4);

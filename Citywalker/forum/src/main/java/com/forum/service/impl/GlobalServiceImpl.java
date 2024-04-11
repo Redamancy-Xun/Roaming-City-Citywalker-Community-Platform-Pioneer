@@ -76,7 +76,7 @@ public class GlobalServiceImpl implements GlobalService {
         } catch (IOException e) {
             throw new MyException(EnumExceptionType.READ_FILE_ERROR);
         }
-        return CommonConstants.IMAGE_PATH + flag + "-" + original;
+        return flag + "-" + original;
     }
 
     @Override
