@@ -2,6 +2,7 @@ package com.forum.dto;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.forum.common.CommonConstants;
 import com.forum.common.EnumExceptionType;
 import com.forum.entity.User;
 import com.forum.exception.MyException;
@@ -64,7 +65,7 @@ public class SessionData  implements Serializable {
         if (user == null)
             throw new MyException(EnumExceptionType.USER_NOT_EXIST);
         this.id = user.getId();
-        this.headportrait = user.getHeadportrait();
+        this.headportrait = CommonConstants.IMAGE_PATH + user.getHeadportrait();
         this.username = user.getUsername();
         this.role = user.getRole();
         this.gender = user.getGender();
