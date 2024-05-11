@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.forum.common.EnumExceptionType;
 import com.forum.common.Page;
+import com.forum.common.Result;
 import com.forum.controller.response.ShowShoppingCartReponse;
 import com.forum.entity.Buy;
 import com.forum.entity.Route;
@@ -59,6 +60,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
      */
     @Override
     public Page<ShowShoppingCartReponse> showShoppingCart(Integer page, Integer pageSize) throws MyException {
+        // 页面参数处理
         if (page == null || page < 1) {
             page = 1;
         }
@@ -66,35 +68,46 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
             pageSize = 10;
         }
 
+        // 获取用户购物车
         String userId = sessionUtils.getUserId();
         QueryWrapper<ShoppingCart> shoppingCartQueryWrapper = new QueryWrapper<>();
         shoppingCartQueryWrapper.eq("user_id", userId);
         ShoppingCart shoppingCart = shoppingCartMapper.selectOne(shoppingCartQueryWrapper);
 
-        int count = 0;
-        List<ShowShoppingCartReponse> showShoppingCartReponses = new ArrayList<>();
+        // 购物车为空的情况
+        if (shoppingCart.getRoutes() == null) {
+            return new Page<ShowShoppingCartReponse>();
+        }
 
+        int count = 0;
+        List<ShowShoppingCartReponse> showShoppingCartResponses = new ArrayList<>();
+
+        // 遍历购物车内的路线
         long cartId = shoppingCart.getCartId();
-        Map<Long, Integer> peopleMap = JSON.parseObject(shoppingCart.getRoutePeople(), new TypeReference<Map<Long, Integer>>(){});
-        Map<Long, String> timeMap = JSON.parseObject(shoppingCart.getRouteTime(), new TypeReference<Map<Long, String>>(){});
-        for (Long routeId : JSON.parseObject(shoppingCart.getRoutes(), new TypeReference<List<Long>>(){})) {
-            Route route = routeMapper.selectById(routeId);
-            Integer routePeople = peopleMap.get(routeId);
-            String routeTime = timeMap.get(routeId);
+        List<String> orderIdList = JSON.parseObject(shoppingCart.getOrderId(), new TypeReference<List<String>>(){});
+        Map<String, Long> routeIdMap = JSON.parseObject(shoppingCart.getRoutes(), new TypeReference<Map<String, Long>>(){});
+        Map<String, Integer> peopleMap = JSON.parseObject(shoppingCart.getRoutePeople(), new TypeReference<Map<String, Integer>>(){});
+        Map<String, String> timeMap = JSON.parseObject(shoppingCart.getRouteTime(), new TypeReference<Map<String, String>>(){});
+        for (String orderId : orderIdList) {
+            Route route = routeMapper.selectById(routeIdMap.get(orderId));
+            Integer routePeople = peopleMap.get(orderId);
+            String routeTime = timeMap.get(orderId);
 
             count++;
             if (count > (long) (page - 1) * pageSize && count <= (long) page * pageSize) {
-                showShoppingCartReponses.add(new ShowShoppingCartReponse(cartId, route, routePeople, routeTime));
+                showShoppingCartResponses.add(new ShowShoppingCartReponse(cartId, orderId, routePeople, routeTime, route));
             }
         }
 
+        // 返回购物车信息
         Page<ShowShoppingCartReponse> showShoppingCartReponsePage = new Page<>();
         showShoppingCartReponsePage.setPageSize(pageSize);
         showShoppingCartReponsePage.setPages(((count - 1) / pageSize) + 1);
         showShoppingCartReponsePage.setPageNum(page);
         showShoppingCartReponsePage.setTotal((long) count);
-        showShoppingCartReponsePage.setItems(showShoppingCartReponses);
+        showShoppingCartReponsePage.setItems(showShoppingCartResponses);
 
+        // 返回购物车信息
         return showShoppingCartReponsePage;
     }
 
@@ -108,37 +121,48 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
      */
     @Override
     public ShowShoppingCartReponse addShoppingCart(Long routeId, Integer routePeople, String routeTime) throws MyException {
+        // 获取用户购物车
         String userId = sessionUtils.getUserId();
         QueryWrapper<ShoppingCart> shoppingCartQueryWrapper = new QueryWrapper<>();
         shoppingCartQueryWrapper.eq("user_id", userId);
         ShoppingCart shoppingCart = shoppingCartMapper.selectOne(shoppingCartQueryWrapper);
 
-        List<Long> routeIdList = new ArrayList<>();
-        Map<Long, Integer> peopleMap = new HashMap<>();
-        Map<Long, String> timeMap = new HashMap<>();
+        // 数据转换为可操作
+        List<String> orderIdList = new ArrayList<>();
+        Map<String, Long> routeIdMap = new HashMap<>();
+        Map<String, Integer> peopleMap = new HashMap<>();
+        Map<String, String> timeMap = new HashMap<>();
         if (shoppingCart.getRoutes() != null) {
-            routeIdList = JSON.parseObject(shoppingCart.getRoutes(), new TypeReference<List<Long>>(){});
+            orderIdList = JSON.parseObject(shoppingCart.getOrderId(), new TypeReference<List<String>>(){});
+            routeIdMap = JSON.parseObject(shoppingCart.getRoutes(), new TypeReference<Map<String, Long>>(){});
+            peopleMap = JSON.parseObject(shoppingCart.getRoutePeople(), new TypeReference<Map<String, Integer>>(){});
+            timeMap = JSON.parseObject(shoppingCart.getRouteTime(), new TypeReference<Map<String, String>>(){});
         }
-        if (shoppingCart.getRoutePeople() != null) {
-            peopleMap = JSON.parseObject(shoppingCart.getRoutePeople(), new TypeReference<Map<Long, Integer>>(){});
-        }
-        if (shoppingCart.getRouteTime() != null) {
-            timeMap = JSON.parseObject(shoppingCart.getRouteTime(), new TypeReference<Map<Long, String>>(){});
-        }
-        routeIdList.add(routeId);
-        peopleMap.put(routeId, routePeople);
-        timeMap.put(routeId, routeTime);
 
-        shoppingCart.setRoutes(JSON.toJSONString(routeIdList));
+        // 生成orderId
+        String orderId = UUID.randomUUID().toString().substring(0, 8);
+
+        // 将路线加入购物车
+        orderIdList.add(orderId);
+        routeIdMap.put(orderId, routeId);
+        peopleMap.put(orderId, routePeople);
+        timeMap.put(orderId, routeTime);
+
+        // 更新购物车
+        shoppingCart.setOrderId(JSON.toJSONString(orderIdList));
+        shoppingCart.setRoutes(JSON.toJSONString(routeIdMap));
         shoppingCart.setRoutePeople(JSON.toJSONString(peopleMap));
         shoppingCart.setRouteTime(JSON.toJSONString(timeMap));
 
+        // 返回购物车信息
         ShowShoppingCartReponse showShoppingCartReponse = new ShowShoppingCartReponse();
         showShoppingCartReponse.setCartId(shoppingCart.getCartId());
+        showShoppingCartReponse.setOrderId(orderId);
         showShoppingCartReponse.setRoute(routeMapper.selectById(routeId));
         showShoppingCartReponse.setRoutePeople(routePeople);
         showShoppingCartReponse.setRouteTime(routeTime);
 
+        // 更新购物车
         if (shoppingCartMapper.updateById(shoppingCart) == 0) {
             throw new MyException(EnumExceptionType.ADD_SHOPPINGCART_FAIL);
         }
@@ -148,28 +172,36 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 
     /**
      * 删除购物车中的路线
-     * @param routeId 路线id
+     * @param orderId 路线orderId
      * @throws MyException 通用异常
      */
     @Override
-    public void deleteShoppingCart(Long routeId) {
+    public void deleteShoppingCart(String orderId) {
+        // 获取用户购物车信息
         String userId = sessionUtils.getUserId();
         QueryWrapper<ShoppingCart> shoppingCartQueryWrapper = new QueryWrapper<>();
         shoppingCartQueryWrapper.eq("user_id", userId);
         ShoppingCart shoppingCart = shoppingCartMapper.selectOne(shoppingCartQueryWrapper);
 
-        List<Long> routeIdList =  JSON.parseObject(shoppingCart.getRoutes(), new TypeReference<List<Long>>(){});
-        Map<Long, Integer> peopleMap = JSON.parseObject(shoppingCart.getRoutePeople(), new TypeReference<Map<Long, Integer>>(){});
-        Map<Long, String> timeMap = JSON.parseObject(shoppingCart.getRouteTime(), new TypeReference<Map<Long, String>>(){});
+        // 数据转换为可操作
+        List<String> orderIdList = JSON.parseObject(shoppingCart.getOrderId(), new TypeReference<List<String>>(){});
+        Map<String, Long> routeIdMap =  JSON.parseObject(shoppingCart.getRoutes(), new TypeReference<Map<String, Long>>(){});
+        Map<String, Integer> peopleMap = JSON.parseObject(shoppingCart.getRoutePeople(), new TypeReference<Map<String, Integer>>(){});
+        Map<String, String> timeMap = JSON.parseObject(shoppingCart.getRouteTime(), new TypeReference<Map<String, String>>(){});
 
-        routeIdList.remove(routeId);
-        peopleMap.remove(routeId);
-        timeMap.remove(routeId);
+        // 删除路线
+        orderIdList.remove(orderId);
+        routeIdMap.remove(orderId);
+        peopleMap.remove(orderId);
+        timeMap.remove(orderId);
 
-        shoppingCart.setRoutes(JSON.toJSONString(routeIdList));
+        // 更新购物车
+        shoppingCart.setOrderId(JSON.toJSONString(orderIdList));
+        shoppingCart.setRoutes(JSON.toJSONString(routeIdMap));
         shoppingCart.setRoutePeople(JSON.toJSONString(peopleMap));
         shoppingCart.setRouteTime(JSON.toJSONString(timeMap));
 
+        // 更新购物车
         if (shoppingCartMapper.updateById(shoppingCart) == 0) {
             throw new MyException(EnumExceptionType.DELETE_SHOPPINGCART_FAIL);
         }
@@ -177,31 +209,44 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 
     /**
      * 购买购物车中的路线
-     * @param routeId 路线id
+     * @param orderId 路线orderId
      * @throws MyException 通用异常
      */
     @Override
-    public void buyShoppingCart(List<Long> routeId) {
+    public void buyShoppingCart(List<String> orderId) {
+        // 获取用户购物车信息
         String userId = sessionUtils.getUserId();
         QueryWrapper<ShoppingCart> shoppingCartQueryWrapper = new QueryWrapper<>();
         shoppingCartQueryWrapper.eq("user_id", userId);
         ShoppingCart shoppingCart = shoppingCartMapper.selectOne(shoppingCartQueryWrapper);
 
-        // 清理购物车内所买的路线
-        List<Long> routeIdList =  JSON.parseObject(shoppingCart.getRoutes(), new TypeReference<List<Long>>(){});
-        Map<Long, Integer> peopleMap = JSON.parseObject(shoppingCart.getRoutePeople(), new TypeReference<Map<Long, Integer>>(){});
-        Map<Long, String> timeMap = JSON.parseObject(shoppingCart.getRouteTime(), new TypeReference<Map<Long, String>>(){});
+        // 数据转换为可操作
+        List<String> orderIdList = JSON.parseObject(shoppingCart.getOrderId(), new TypeReference<List<String>>(){});
+        Map<String, Long> routeIdMap =  JSON.parseObject(shoppingCart.getRoutes(), new TypeReference<Map<String, Long>>(){});
+        Map<String, Integer> peopleMap = JSON.parseObject(shoppingCart.getRoutePeople(), new TypeReference<Map<String, Integer>>(){});
+        Map<String, String> timeMap = JSON.parseObject(shoppingCart.getRouteTime(), new TypeReference<Map<String, String>>(){});
 
-        for (Long id : routeId) {
-            routeIdList.remove(id);
-            peopleMap.remove(id);
-            timeMap.remove(id);
+        // 记录购买的路线
+        List<Long> routeIdList = new ArrayList<>();
+        for (String id : orderId) {
+            routeIdList.add(routeIdMap.get(id));
         }
 
-        shoppingCart.setRoutes(JSON.toJSONString(routeIdList));
+        // 购买路线
+        for (String orderIdOne : orderId) {
+            orderIdList.remove(orderIdOne);
+            routeIdMap.remove(orderIdOne);
+            peopleMap.remove(orderIdOne);
+            timeMap.remove(orderIdOne);
+        }
+
+        // 更新购物车
+        shoppingCart.setOrderId(JSON.toJSONString(orderIdList));
+        shoppingCart.setRoutes(JSON.toJSONString(routeIdMap));
         shoppingCart.setRoutePeople(JSON.toJSONString(peopleMap));
         shoppingCart.setRouteTime(JSON.toJSONString(timeMap));
 
+        // 更新购物车
         if (shoppingCartMapper.updateById(shoppingCart) == 0) {
             throw new MyException(EnumExceptionType.BUY_SHOPPINGCART_FAIL);
         }
@@ -211,18 +256,19 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         buyQueryWrapper.eq("user_id", userId);
         buyQueryWrapper.isNull("delete_at");
         Buy buy = buyMapper.selectOne(buyQueryWrapper);
-        List<Long> buyRoutes = buy.getBuyRoutes() == null ? new ArrayList<>() : JSON.parseObject(buy.getBuyRoutes(), new TypeReference<List<Long>>(){});
-        buyRoutes.addAll(routeId);
-        buy.setBuyRoutes(JSON.toJSONString(buyRoutes));
+        List<Long> oldRouteIdList = buy.getBuyRoutes() == null ? new ArrayList<>() : JSON.parseObject(buy.getBuyRoutes(), new TypeReference<List<Long>>(){});
+        oldRouteIdList.addAll(routeIdList);
+        buy.setBuyRoutes(JSON.toJSONString(oldRouteIdList));
+
+        // 更新购买订单
         if (buyMapper.updateById(buy) == 0) {
             throw new MyException(EnumExceptionType.BUY_SHOPPINGCART_FAIL);
         }
 
         // 给用户发送购买订单成功系统信息
         User user = userService.getUserById(userId);
-        for (Long id : routeId) {
+        for (Long id : routeIdList) {
             noticeService.sendBuySuccessNotice(user, id);
         }
-
     }
 }

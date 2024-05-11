@@ -36,6 +36,10 @@ public class ShoppingCart {
     @ApiModelProperty("用户id")
     private String userId;
 
+    @Column(name = "orderId", nullable = true)
+    @ApiModelProperty("订单id")
+    private String orderId;
+
     @Column(name = "routes", nullable = true)
     @ApiModelProperty("购物车中的路线")
     private String routes;

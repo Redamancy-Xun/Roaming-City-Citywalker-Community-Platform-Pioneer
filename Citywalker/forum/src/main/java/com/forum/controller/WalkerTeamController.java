@@ -29,6 +29,11 @@ public class WalkerTeamController {
     @Autowired
     private WalkerTeamService walkerTeamService;
 
+    /**
+     * 发起组队
+     * @param createWalkerTeamRequest
+     * @return Result
+     */
     @Auth
     @PostMapping(value = "/create", produces = "application/json")
     @ApiOperation(value = "发起组队")
@@ -40,6 +45,12 @@ public class WalkerTeamController {
         }
     }
 
+    /**
+     * 展示组队信息
+     * @param page 页码
+     * @param pageSize 每页数量
+     * @return Result
+     */
     @Auth
     @GetMapping(value = "/show", produces = "application/json")
     @ApiOperation(value = "展示组队信息")
@@ -56,6 +67,11 @@ public class WalkerTeamController {
         }
     }
 
+    /**
+     * 获取组队详细信息
+     * @param teamId 组队id
+     * @return Result
+     */
     @Auth
     @GetMapping(value = "/getWalkerTeamById", produces = "application/json")
     @ApiOperation(value = "获取组队详细信息")
@@ -69,16 +85,43 @@ public class WalkerTeamController {
         }
     }
 
+    /**
+     * 删除组队
+     * @param teamId 组队id
+     * @return Result
+     */
     @Auth
     @PostMapping(value = "/delete", produces = "application/json")
     @ApiOperation(value = "删除组队")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "teamId", value = "teamId", required = true, paramType = "query", dataType = "Long"),
     })
-    public Result deleteWalkerTeam(@RequestParam("teamd") Long teamId) {
+    public Result deleteWalkerTeam(@RequestParam("teamId") Long teamId) {
         try {
             walkerTeamService.deleteWalkerTeam(teamId);
             return Result.success("删除成功");
+        } catch (MyException e) {
+            return Result.result(e.getEnumExceptionType());
+        }
+    }
+
+    /**
+     * 展示用户发起的组队信息
+     * @param page 页码
+     * @param pageSize 每页数量
+     * @return Result
+     */
+    @Auth
+    @GetMapping(value = "/showUserWalkerTeam", produces = "application/json")
+    @ApiOperation(value = "展示用户发起的组队信息")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "page", required = true, paramType = "query", dataType = "Integer"),
+            @ApiImplicitParam(name = "pageSize", value = "pageSize", required = true, paramType = "query", dataType = "Integer")
+    })
+    public Result showUserWalkerTeam(@RequestParam("page") Integer page,
+                                     @RequestParam("pageSize") Integer pageSize) {
+        try {
+            return Result.success(walkerTeamService.showUserWalkerTeam(page, pageSize));
         } catch (MyException e) {
             return Result.result(e.getEnumExceptionType());
         }

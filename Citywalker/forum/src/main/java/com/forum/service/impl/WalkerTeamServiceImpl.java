@@ -148,4 +148,50 @@ public class WalkerTeamServiceImpl implements WalkerTeamService {
         }
     }
 
+    /**
+     * 展示用户的组队信息
+     * @param page 页码
+     * @param pageSize 每页数量
+     * @return Page<ShowWalkerTeamResponse>
+     * @throws MyException 通用异常
+     */
+    @Override
+    public Page<ShowWalkerTeamResponse> showUserWalkerTeam(Integer page, Integer pageSize) throws MyException {
+        // 页码和每页数量处理
+        if (page == null || page < 1) {
+            page = 1;
+        }
+        if (pageSize == null || pageSize < 1) {
+            pageSize = 10;
+        }
+
+        // 获取用户id
+        String userId = sessionUtils.getUserId();
+        // 分页查询
+        PageHelper.startPage(page, pageSize, "create_at desc");
+        QueryWrapper<WalkerTeam> walkerTeamQueryWrapper = new QueryWrapper<>();
+        walkerTeamQueryWrapper.eq("user_id", userId);
+        Page<WalkerTeam> walkerTeamPage = new Page<>(new PageInfo<>(walkerTeamMapper.selectList(walkerTeamQueryWrapper)));
+
+        // 封装返回数据
+        Page<ShowWalkerTeamResponse> responsePage = new Page<>();
+        responsePage.setPageSize(walkerTeamPage.getPageSize());
+        responsePage.setPageNum(walkerTeamPage.getPageNum());
+        responsePage.setTotal(walkerTeamPage.getTotal());
+        responsePage.setPages(walkerTeamPage.getPages());
+
+        // 封装返回数据
+        List<ShowWalkerTeamResponse> responseList = new ArrayList<>();
+        for (WalkerTeam walkerTeam : walkerTeamPage.getItems()) {
+            User user = userService.getUserById(walkerTeam.getUserId());
+            ShowUserResponse userResponse = new ShowUserResponse(user);
+            Route route = routeMapper.selectById(walkerTeam.getRouteId());
+            responseList.add(new ShowWalkerTeamResponse(walkerTeam, userResponse, route));
+        }
+        responsePage.setItems(responseList);
+
+        // 返回数据
+        return responsePage;
+    }
+
 }

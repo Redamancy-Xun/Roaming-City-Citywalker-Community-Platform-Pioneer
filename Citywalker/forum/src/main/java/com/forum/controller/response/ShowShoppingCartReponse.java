@@ -22,12 +22,15 @@ public class ShowShoppingCartReponse {
     @ApiModelProperty("购物车id")
     private Long CartId;
 
-    @ApiModelProperty("购物车中的路线")
-    private Route route;
+    @ApiModelProperty("订单id")
+    private String orderId;
 
     @ApiModelProperty("路线选择人数")
     private Integer routePeople;
 
     @ApiModelProperty("路线选择时间段")
     private String routeTime;
+
+    @ApiModelProperty("购物车中的路线")
+    private Route route;
 }

@@ -30,6 +30,12 @@ public class ShoppingCartController {
     @Autowired
     private ShoppingCartService shoppingCartService;
 
+    /**
+     * 展示用户购物车
+     * @param page 页码
+     * @param pageSize 每页数量
+     * @return Result
+     */
     @GetMapping(value = "/show", produces = "application/json")
     @ApiOperation(value = "展示用户购物车")
     @ApiImplicitParams({
@@ -45,6 +51,13 @@ public class ShoppingCartController {
         }
     }
 
+    /**
+     * 加入用户购物车
+     * @param routeId routeId
+     * @param routePeople routePeople
+     * @param routeTime routeTime
+     * @return Result
+     */
     @PostMapping(value = "/add", produces = "application/json")
     @ApiOperation(value = "加入用户购物车")
     @ApiImplicitParams({
@@ -62,34 +75,43 @@ public class ShoppingCartController {
         }
     }
 
+    /**
+     * 删除购物车内路线
+     * @param orderId orderId
+     * @return Result
+     */
     @Auth
     @PostMapping(value = "/delete", produces = "application/json")
     @ApiOperation(value = "删除购物车内路线")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "routeId", value = "routeId", required = true, paramType = "query", dataType = "Long"),
+            @ApiImplicitParam(name = "orderId", value = "orderId", required = true, paramType = "query", dataType = "String")
     })
-    public Result deleteShoppingCart(@RequestParam("routeId") Long routeId) {
+    public Result deleteShoppingCart(@RequestParam("orderId") String orderId) {
         try {
-            shoppingCartService.deleteShoppingCart(routeId);
+            shoppingCartService.deleteShoppingCart(orderId);
             return Result.success("删除成功");
         } catch (MyException e) {
             return Result.result(e.getEnumExceptionType());
         }
     }
 
+    /**
+     * 购买购物车内路线
+     * @param orderId orderId
+     * @return Result
+     */
     @Auth
     @PostMapping(value = "/buy", produces = "application/json")
     @ApiOperation(value = "购买购物车内路线")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "routeId", value = "routeId", required = true, paramType = "query", dataType = "List<Long>"),
+            @ApiImplicitParam(name = "orderId", value = "orderId", required = true, paramType = "query", dataType = "List<String>")
     })
-    public Result buyShoppingCart(@RequestParam("routeId") List<Long> routeId) {
+    public Result buyShoppingCart(@RequestParam("orderId") List<String> orderId) {
         try {
-            shoppingCartService.buyShoppingCart(routeId);
+            shoppingCartService.buyShoppingCart(orderId);
             return Result.success("购买成功");
         } catch (MyException e) {
             return Result.result(e.getEnumExceptionType());
         }
     }
-
 }
