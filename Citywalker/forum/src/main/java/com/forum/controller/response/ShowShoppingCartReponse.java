@@ -31,6 +31,9 @@ public class ShowShoppingCartReponse {
     @ApiModelProperty("路线选择时间段")
     private String routeTime;
 
+    @ApiModelProperty("路线花销")
+    private Integer routeCost;
+
     @ApiModelProperty("购物车中的路线")
     private Route route;
 }

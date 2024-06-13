@@ -51,6 +51,8 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     @Autowired
     private SessionUtils sessionUtils;
 
+    private static final Integer[] cost = {128, 128, 88, 88, 98, 48, 68, 88, 58, 88, 88, 88};
+
     /**
      * 展示用户购物车中的路线
      * @param page 页码
@@ -92,10 +94,11 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
             Route route = routeMapper.selectById(routeIdMap.get(orderId));
             Integer routePeople = peopleMap.get(orderId);
             String routeTime = timeMap.get(orderId);
+            Integer routeCost = cost[route.getRouteId().intValue() - 1] * routePeople;
 
             count++;
             if (count > (long) (page - 1) * pageSize && count <= (long) page * pageSize) {
-                showShoppingCartResponses.add(new ShowShoppingCartReponse(cartId, orderId, routePeople, routeTime, route));
+                showShoppingCartResponses.add(new ShowShoppingCartReponse(cartId, orderId, routePeople, routeTime, routeCost, route));
             }
         }
 

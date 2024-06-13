@@ -10,8 +10,8 @@ public class CommonConstants {
     public final static String USER_FILE_PATH = "/var/www/html/image/";
     public final static String VERIFICATION_TITLE = "漫游城——citywalker 验证码";
     public final static String AUTH_FILE_PATH = "/home/ubuntu/ver/";
-    public final static String IMAGE_PATH = "http://118.178.196.58/image/";
-    public final static String AUTH_DOWN_PATH = "http://118.178.196.58/image2/";
+    public final static String IMAGE_PATH = "https://www.drang7070.top/image/";
+    public final static String AUTH_DOWN_PATH = "http://47.102.116.176/image2/";
     public final static String SEPARATOR = ",";
     public final static String CHAT_RECORD_COLLECTION_NAME = "chat_record";
     public final static String WX_SESSION_REQUEST_URL = "https://api.weixin.qq.com/sns/jscode2session";
