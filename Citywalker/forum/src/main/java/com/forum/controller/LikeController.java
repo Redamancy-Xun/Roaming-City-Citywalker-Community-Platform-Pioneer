@@ -20,7 +20,7 @@ import javax.validation.constraints.NotNull;
 @Slf4j
 @Validated
 @Api("PostController")
-@RequestMapping("/like")
+@RequestMapping("/like") //http://www.redamancy.fun/like/like?id={id}&type={type}
 public class LikeController {
 
     @Autowired
